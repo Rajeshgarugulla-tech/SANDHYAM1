@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import pdfParse from 'pdf-parse';
+import * as pdfParse from 'pdf-parse';
 import { generateJsonWithGrok } from '@/lib/ai';
 
 type SourceType = 'website_url' | 'business_text' | 'pdf_document' | 'voice_note' | 'maps_link';
