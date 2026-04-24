@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
-import * as pdfParse from 'pdf-parse';
+// @ts-ignore - pdf-parse compatibility
+const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 import { generateJsonWithGrok } from '@/lib/ai';
 
 type SourceType = 'website_url' | 'business_text' | 'pdf_document' | 'voice_note' | 'maps_link';
@@ -45,7 +46,7 @@ function extractWebsiteData(url: string, html: string) {
 }
 
 async function parsePdf(fileBuffer: Buffer) {
-  const result = await pdfParse.default(fileBuffer);
+  const result = await pdfParse(fileBuffer);
   return truncate(result.text || '', 12000);
 }
 
