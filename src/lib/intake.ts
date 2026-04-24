@@ -1,7 +1,15 @@
 import * as cheerio from 'cheerio';
-// @ts-ignore - pdf-parse compatibility
-const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 import { generateJsonWithGrok } from '@/lib/ai';
+
+// Dynamic import for pdf-parse to avoid ESM issues
+let pdfParse: any = null;
+
+async function getPdfParser() {
+  if (!pdfParse) {
+    pdfParse = (await import('pdf-parse/lib/pdf.js')).default || (await import('pdf-parse'));
+  }
+  return pdfParse;
+}
 
 type SourceType = 'website_url' | 'business_text' | 'pdf_document' | 'voice_note' | 'maps_link';
 
@@ -46,7 +54,8 @@ function extractWebsiteData(url: string, html: string) {
 }
 
 async function parsePdf(fileBuffer: Buffer) {
-  const result = await pdfParse(fileBuffer);
+  const parser = await getPdfParser();
+  const result = await parser(fileBuffer);
   return truncate(result.text || '', 12000);
 }
 
