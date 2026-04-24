@@ -1,17 +1,7 @@
 import * as cheerio from 'cheerio';
 import { generateJsonWithGrok } from '@/lib/ai';
 
-// Dynamic import for pdf-parse to avoid ESM issues
-let pdfParse: any = null;
-
-async function getPdfParser() {
-  if (!pdfParse) {
-    pdfParse = (await import('pdf-parse/lib/pdf.js')).default || (await import('pdf-parse'));
-  }
-  return pdfParse;
-}
-
-type SourceType = 'website_url' | 'business_text' | 'pdf_document' | 'voice_note' | 'maps_link';
+type SourceType = 'website_url' | 'business_text' | 'voice_note' | 'maps_link';
 
 function truncate(input: string, max = 12000) {
   return input.length > max ? `${input.slice(0, max)}...` : input;
@@ -51,12 +41,6 @@ function extractWebsiteData(url: string, html: string) {
     socialLinks: social.slice(0, 8),
     contentSnippet: truncate(bodyText, 8000),
   };
-}
-
-async function parsePdf(fileBuffer: Buffer) {
-  const parser = await getPdfParser();
-  const result = await parser(fileBuffer);
-  return truncate(result.text || '', 12000);
 }
 
 function buildAnalysisPrompt(sourceType: SourceType, extractedText: string, sourceValue?: string) {
@@ -138,9 +122,8 @@ export async function runAutoIntakeAnalysis(params: {
   sourceValue?: string;
   businessText?: string;
   voiceText?: string;
-  pdfFileBuffer?: Buffer;
 }) {
-  const { sourceType, sourceValue, businessText, voiceText, pdfFileBuffer } = params;
+  const { sourceType, sourceValue, businessText, voiceText } = params;
   let extractedContext = '';
 
   if (sourceType === 'website_url' || sourceType === 'maps_link') {
@@ -152,9 +135,6 @@ export async function runAutoIntakeAnalysis(params: {
     extractedContext = truncate(businessText || '', 12000);
   } else if (sourceType === 'voice_note') {
     extractedContext = truncate(voiceText || '', 12000);
-  } else if (sourceType === 'pdf_document') {
-    if (!pdfFileBuffer) throw new Error('PDF file is required');
-    extractedContext = await parsePdf(pdfFileBuffer);
   }
 
   if (!extractedContext.trim()) {
