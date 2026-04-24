@@ -45,7 +45,7 @@ function extractWebsiteData(url: string, html: string) {
 }
 
 async function parsePdf(fileBuffer: Buffer) {
-  const result = await pdfParse(fileBuffer);
+  const result = await pdfParse.default(fileBuffer);
   return truncate(result.text || '', 12000);
 }
 
